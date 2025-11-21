@@ -33,24 +33,24 @@ You will typically receive a response within one week of submitting your request
 ### Installation
 
 1. **Clone the repository**:
-   ```bash
+```python
    git clone <https://github.com/TaoMedAI/RareSeek-R1>
    ```
   
 2. **Create conda environment**:
-   ```bash
+```python
    conda create -n rareseek python=3.10
    conda activate rareseek
    ```
    
 3. **Install dependencies**:
-   ```bash
+```python
    pip install -r requirements.txt
    ```
 
 ### Deploy vLLM for inference
 
-```bash
+```python
 cd inference
 sbatch inference.sh
 ```
