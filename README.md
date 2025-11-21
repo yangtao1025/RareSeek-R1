@@ -31,7 +31,6 @@ You will typically receive a response within one week of submitting your request
 1. **Clone the repository**:
    ```bash
    git clone <https://github.com/TaoMedAI/RareSeek-R1>
-   cd inference
    ```
   
 2. **Create conda environment**:
@@ -45,19 +44,53 @@ You will typically receive a response within one week of submitting your request
    pip install -r requirements.txt
    ```
 
+### 部署vllm推理
 
+```bash
+cd inference
+sbatch inference.sh
+```
+
+### Run demo
 ```python
-import pandas as pd
-from transformers import AutoTokenizer, AutoModelForCausalLM
-model_path = "medicalai/ClinicalGPT-R1-Qwen-7B-EN-preview"
-tokenizer = AutoTokenizer.from_pretrained(model_path)
-model = AutoModelForCausalLM.from_pretrained(model_path, device_map="auto")
-data = pd.read_json('data/test.zip', lines=True).iloc[1]
-prompt = f"{data["context"]}\n\nPlease provide a detailed and comprehensive diagnostic analysis of this medical record, and give the diagnostic results.\n"
-messages = [{"role": "user", "content": prompt}]
-text = tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
-input_ids = tokenizer([text], return_tensors="pt").to(model.device)
-output_ids = model.generate(**input_ids, max_new_tokens=2048, temperature=0.7, do_sample=True).to(model.device)
-generated_text = tokenizer.decode(output_ids[0,len(input_ids[0]):], skip_special_tokens=True)
-print("Generated Output:\n", generated_text)
+import json
+from vllm import LLM, SamplingParams
+
+# Function to load data from the JSONL file
+def load_data(file_path):
+    data = []
+    with open(file_path, 'r') as file:
+        for line in file:
+            data.append(json.loads(line.strip()))
+    return data
+
+# Function to build the prompt by appending a question to the context
+def build_prompt(context):
+    return f"{context} What is the rare disease that the patient is most likely to be diagnosed with?"
+
+# Load the data from the sample.jsonl file
+file_path = "sample_data/sample.jsonl"  # Path to your jsonl file
+data = load_data(file_path)
+
+# Create sampling parameters for controlling the model output
+sampling_params = SamplingParams(temperature=0.8, top_p=0.95)
+
+# Specify the model path (replace with local path if downloaded)
+# If you have the model downloaded, replace "TaoMedAI/RareSeek-R1" with the local path to the model directory
+llm = LLM(model="TaoMedAI/RareSeek-R1")  # Use local path if model is downloaded, e.g. "path/to/model"
+
+# Iterate over the data and generate predictions
+for entry in data:
+    context = entry["context"]
+    prompt = build_prompt(context)
+    
+    # Use the LLM to generate text based on the prompt
+    outputs = llm.generate([prompt], sampling_params)
+    
+    # Print the results
+    for output in outputs:
+        generated_text = output.outputs[0].text
+        print(f"Prompt: {prompt!r}")
+        print(f"Generated Text: {generated_text!r}")
+        print("-" * 50)
 ```
