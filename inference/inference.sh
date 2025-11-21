@@ -8,8 +8,6 @@
 #SBATCH --output=%j.out
 #SBATCH --error=%j.err
 
-# ===== 环境准备 =====
-
 export CUDA_VISIBLE_DEVICES=0,1,2,3
 export NPROC_PER_NODE=4
 export LOGLEVEL=INFO
