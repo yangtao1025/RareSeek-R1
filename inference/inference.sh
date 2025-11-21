@@ -20,5 +20,5 @@ vllm serve TaoMedAI/model/RareSeek-R1 \
 	--host 0.0.0.0 \
 	--port 8001 \
 	--max_model_len 2048 \
-  --tensor-parallel-size 4 \
+    --tensor-parallel-size 4 \
 	--gpu_memory_utilization 0.93
